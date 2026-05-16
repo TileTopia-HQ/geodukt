@@ -1,18 +1,16 @@
 [package]
-name = "geodukt-cli"
+name = "geodukt-server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-
-[[bin]]
-name = "geodukt"
-path = "src/main.rs"
 
 [dependencies]
 geodukt-core = { path = "../geodukt-core" }
 geodukt-transforms = { path = "../geodukt-transforms" }
 geodukt-io = { path = "../geodukt-io" }
-geodukt-server = { path = "../geodukt-server" }
-geodukt-plugins = { path = "../geodukt-plugins" }
-clap = { version = "4", features = ["derive"] }
+axum = "0.8"
 tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
