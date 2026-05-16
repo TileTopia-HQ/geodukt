@@ -1,0 +1,218 @@
+//! GeoJSON reader/writer.
+
+use std::fs;
+
+use geo::Geometry;
+use geodukt_core::feature::{Feature, FeatureCollection, Value};
+use geodukt_core::pipeline::{PipelineError, SinkWriter, SourceReader};
+use geojson::GeoJson;
+
+/// GeoJSON source reader.
+pub struct GeoJsonReader;
+
+impl SourceReader for GeoJsonReader {
+    fn read_source(
+        &self,
+        format: &str,
+        path: &str,
+        _crs: Option<&str>,
+    ) -> Result<FeatureCollection, PipelineError> {
+        if format != "geojson" {
+            return Err(PipelineError::Source {
+                name: path.to_string(),
+                message: format!("unsupported format: {format}"),
+            });
+        }
+
+        let content = fs::read_to_string(path).map_err(|e| PipelineError::Source {
+            name: path.to_string(),
+            message: e.to_string(),
+        })?;
+
+        let geojson: GeoJson = content.parse().map_err(|e| PipelineError::Source {
+            name: path.to_string(),
+            message: format!("invalid GeoJSON: {e}"),
+        })?;
+
+        let features = match geojson {
+            GeoJson::FeatureCollection(fc) => fc
+                .features
+                .into_iter()
+                .filter_map(|f| {
+                    let geom: Geometry<f64> = f.geometry?.try_into().ok()?;
+                    let props = f
+                        .properties
+                        .unwrap_or_default()
+                        .into_iter()
+                        .map(|(k, v)| (k, json_to_value(&v)))
+                        .collect();
+                    Some(Feature {
+                        geometry: geom,
+                        properties: props,
+                    })
+                })
+                .collect(),
+            _ => Vec::new(),
+        };
+
+        Ok(FeatureCollection::new(features, Some("EPSG:4326".into())))
+    }
+}
+
+/// GeoJSON sink writer.
+pub struct GeoJsonWriter;
+
+impl SinkWriter for GeoJsonWriter {
+    fn write_sink(
+        &self,
+        data: &FeatureCollection,
+        format: &str,
+        path: &str,
+    ) -> Result<(), PipelineError> {
+        if format != "geojson" {
+            return Err(PipelineError::Sink {
+                name: path.to_string(),
+                message: format!("unsupported format: {format}"),
+            });
+        }
+
+        let features: Vec<geojson::Feature> = data
+            .features
+            .iter()
+            .map(|f| {
+                let geom: geojson::Geometry = (&f.geometry).into();
+                let props: serde_json::Map<String, serde_json::Value> = f
+                    .properties
+                    .iter()
+                    .map(|(k, v)| (k.clone(), value_to_json(v)))
+                    .collect();
+                geojson::Feature {
+                    geometry: Some(geom),
+                    properties: Some(props),
+                    ..Default::default()
+                }
+            })
+            .collect();
+
+        let fc = geojson::FeatureCollection {
+            features,
+            bbox: None,
+            foreign_members: None,
+        };
+
+        if let Some(parent) = std::path::Path::new(path).parent() {
+            fs::create_dir_all(parent).map_err(|e| PipelineError::Sink {
+                name: path.to_string(),
+                message: e.to_string(),
+            })?;
+        }
+
+        fs::write(path, fc.to_string()).map_err(|e| PipelineError::Sink {
+            name: path.to_string(),
+            message: e.to_string(),
+        })?;
+
+        Ok(())
+    }
+}
+
+fn json_to_value(v: &serde_json::Value) -> Value {
+    match v {
+        serde_json::Value::Null => Value::Null,
+        serde_json::Value::Bool(b) => Value::Bool(*b),
+        serde_json::Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                Value::Integer(i)
+            } else {
+                Value::Float(n.as_f64().unwrap_or(0.0))
+            }
+        }
+        serde_json::Value::String(s) => Value::String(s.clone()),
+        _ => Value::String(v.to_string()),
+    }
+}
+
+fn value_to_json(v: &Value) -> serde_json::Value {
+    match v {
+        Value::Null => serde_json::Value::Null,
+        Value::Bool(b) => serde_json::Value::Bool(*b),
+        Value::Integer(i) => serde_json::Value::Number((*i).into()),
+        Value::Float(f) => {
+            serde_json::Value::Number(serde_json::Number::from_f64(*f).unwrap_or(0.into()))
+        }
+        Value::String(s) => serde_json::Value::String(s.clone()),
+    }
+}
+
+/// Multi-format reader that delegates to format-specific readers.
+pub struct MultiFormatReader;
+
+impl SourceReader for MultiFormatReader {
+    fn read_source(
+        &self,
+        format: &str,
+        path: &str,
+        crs: Option<&str>,
+    ) -> Result<FeatureCollection, PipelineError> {
+        match format {
+            "geojson" => GeoJsonReader.read_source(format, path, crs),
+            _ => Err(PipelineError::Source {
+                name: path.to_string(),
+                message: format!("unsupported format: {format}"),
+            }),
+        }
+    }
+}
+
+/// Multi-format writer that delegates to format-specific writers.
+pub struct MultiFormatWriter;
+
+impl SinkWriter for MultiFormatWriter {
+    fn write_sink(
+        &self,
+        data: &FeatureCollection,
+        format: &str,
+        path: &str,
+    ) -> Result<(), PipelineError> {
+        match format {
+            "geojson" => GeoJsonWriter.write_sink(data, format, path),
+            _ => Err(PipelineError::Sink {
+                name: path.to_string(),
+                message: format!("unsupported format: {format}"),
+            }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_geojson_roundtrip() {
+        let geojson_str = r#"{
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
+                "properties": {"name": "test"}
+            }]
+        }"#;
+
+        let mut tmp = NamedTempFile::new().unwrap();
+        tmp.write_all(geojson_str.as_bytes()).unwrap();
+        let path = tmp.path().to_str().unwrap();
+
+        let fc = GeoJsonReader.read_source("geojson", path, None).unwrap();
+        assert_eq!(fc.len(), 1);
+
+        let out = NamedTempFile::new().unwrap();
+        let out_path = out.path().to_str().unwrap().to_string();
+        GeoJsonWriter.write_sink(&fc, "geojson", &out_path).unwrap();
+
+        let written = fs::read_to_string(&out_path).unwrap();
+        assert!(written.contains("Point"));
+    }
+}

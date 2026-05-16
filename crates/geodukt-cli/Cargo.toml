@@ -1,0 +1,16 @@
+[package]
+name = "geodukt-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "geodukt"
+path = "src/main.rs"
+
+[dependencies]
+geodukt-core = { path = "../geodukt-core" }
+geodukt-transforms = { path = "../geodukt-transforms" }
+geodukt-io = { path = "../geodukt-io" }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }

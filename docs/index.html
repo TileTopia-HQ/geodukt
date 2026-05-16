@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geodukt — Declarative Geospatial ETL</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #a78bfa;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --code-bg: #1a1033;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            background: linear-gradient(135deg, var(--bg) 0%, #1a1033 100%);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light), #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .hero .subtitle {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: var(--code-bg);
+            color: var(--primary-light);
+            border: 1px solid var(--primary);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section { margin: 4rem 0; }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-light);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            border: 1px solid #334155;
+            margin: 1rem 0;
+        }
+
+        code { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+        .cta {
+            text-align: center;
+            margin: 4rem 0;
+        }
+
+        .cta a {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 0 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .cta a:hover {
+            background: var(--primary-light);
+            color: #0f172a;
+        }
+
+        .pipeline-example {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #334155;
+        }
+
+        .architecture {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        .architecture pre {
+            display: inline-block;
+            text-align: left;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            border-top: 1px solid #334155;
+        }
+
+        footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Geodukt</h1>
+        <p class="subtitle">
+            A declarative geospatial ETL pipeline — <strong>dbt for spatial data</strong>.
+            Define transforms as a DAG. Geodukt resolves dependencies and materializes outputs.
+        </p>
+        <div class="badges">
+            <span class="badge">Rust</span>
+            <span class="badge">DAG Engine</span>
+            <span class="badge">Declarative TOML</span>
+            <span class="badge">GeoJSON / CSV</span>
+            <span class="badge">Extensible Transforms</span>
+            <span class="badge">AGPL-3.0-or-later</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <section>
+            <h2>Features</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>Declarative Pipelines</h3>
+                    <p>Define sources, transforms, and sinks in TOML. No imperative scripting — just declare what you want.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>DAG Execution</h3>
+                    <p>Automatic dependency resolution via topological sort. Detect cycles, validate references, execute in order.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Spatial Transforms</h3>
+                    <p>Buffer, centroid, filter, clip, reproject, simplify, dissolve. Pluggable registry — add your own operations.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Multi-Format I/O</h3>
+                    <p>Read GeoJSON, CSV with coordinates. Write GeoJSON. Designed for GeoPackage, GeoParquet, FlatGeobuf extension.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>CLI Tool</h3>
+                    <p><code>geodukt run</code>, <code>validate</code>, <code>graph</code>, <code>init</code>. Fast feedback on your pipeline before execution.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Extensible Architecture</h3>
+                    <p>Implement TransformOp, SourceReader, or SinkWriter traits. Register new operations in the transform registry.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Validation First</h3>
+                    <p>Check your DAG for cycles, unknown references, and duplicate names before running. Fail fast, fix early.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Execution Reports</h3>
+                    <p>After each run, see feature counts per stage. Know exactly what flowed through your pipeline.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>TileTopia Ecosystem</h3>
+                    <p>Pairs with Geokode for geocoding enrichment, Jung for symbology, and upcoming stream processing + AI extraction.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Pipeline Example</h2>
+            <div class="pipeline-example">
+<pre><code># geodukt.toml
+[project]
+name = "city-analysis"
+version = "0.1.0"
+
+[[source]]
+name = "buildings"
+format = "geojson"
+path = "data/buildings.geojson"
+
+[[transform]]
+name = "commercial_only"
+input = "buildings"
+operation = "filter"
+field = "type"
+equals = "commercial"
+
+[[transform]]
+name = "centroids"
+input = "commercial_only"
+operation = "centroid"
+
+[[sink]]
+name = "output"
+input = "centroids"
+format = "geojson"
+path = "output/commercial_centroids.geojson"</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Quick Start</h2>
+<pre><code># Initialize a project
+geodukt init my-pipeline
+cd my-pipeline
+
+# Edit geodukt.toml to define your pipeline
+# Add data to data/ directory
+
+# Validate the DAG
+geodukt validate
+
+# Run the pipeline
+geodukt run
+
+# Visualize execution order
+geodukt graph</code></pre>
+        </section>
+
+        <section>
+            <h2>Architecture</h2>
+            <div class="architecture">
+<pre><code>┌──────────────┐     ┌───────────────────┐     ┌────────────┐
+│  geodukt-io  │────▶│   geodukt-core    │◀────│ geodukt-   │
+│ (read/write) │     │ (DAG + pipeline)  │     │ transforms │
+└──────────────┘     └───────────────────┘     └────────────┘
+                              │
+                              ▼
+                       ┌────────────────┐
+                       │  geodukt-cli   │
+                       │ (run/validate) │
+                       └────────────────┘</code></pre>
+            </div>
+        </section>
+
+        <div class="cta">
+            <a href="https://github.com/TileTopia-HQ/geodukt">GitHub</a>
+            <a href="https://github.com/TileTopia-HQ/geodukt/blob/master/README.md">Documentation</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Part of the <a href="https://github.com/TileTopia-HQ">TileTopia</a> geospatial platform.
+        Licensed under <a href="https://github.com/TileTopia-HQ/geodukt/blob/master/LICENSE">AGPL-3.0-or-later</a>.</p>
+    </footer>
+</body>
+</html>

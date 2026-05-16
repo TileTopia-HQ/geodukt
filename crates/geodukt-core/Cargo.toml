@@ -1,0 +1,12 @@
+[package]
+name = "geodukt-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+petgraph = "0.7"
+geo = "0.29"

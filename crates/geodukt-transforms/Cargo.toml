@@ -1,0 +1,12 @@
+[package]
+name = "geodukt-transforms"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+geodukt-core = { path = "../geodukt-core" }
+geo = "0.29"
+proj = "0.28"
+toml = "0.8"
+thiserror = "2"
