@@ -10,6 +10,7 @@ use crate::clip::ClipTransform;
 use crate::dissolve::DissolveTransform;
 use crate::expression::ExpressionTransform;
 use crate::filter::FilterTransform;
+#[cfg(feature = "reproject")]
 use crate::reproject::ReprojectTransform;
 use crate::schema::SchemaMapTransform;
 use crate::simplify::SimplifyTransform;
@@ -24,6 +25,7 @@ pub fn default_registry() -> HashMap<String, Box<dyn TransformOp>> {
     registry.insert("dissolve".into(), Box::new(DissolveTransform));
     registry.insert("expression".into(), Box::new(ExpressionTransform));
     registry.insert("filter".into(), Box::new(FilterTransform));
+    #[cfg(feature = "reproject")]
     registry.insert("reproject".into(), Box::new(ReprojectTransform));
     registry.insert("schema_map".into(), Box::new(SchemaMapTransform));
     registry.insert("simplify".into(), Box::new(SimplifyTransform));

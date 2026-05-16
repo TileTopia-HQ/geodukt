@@ -9,6 +9,7 @@ pub mod dissolve;
 pub mod expression;
 pub mod filter;
 pub mod registry;
+#[cfg(feature = "reproject")]
 pub mod reproject;
 pub mod schema;
 pub mod simplify;

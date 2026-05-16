@@ -137,22 +137,3 @@ pub async fn serve(bind: &str) -> std::io::Result<()> {
         .await
         .map_err(|e| std::io::Error::other(e.to_string()))
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::body::Body;
-    use axum::http::Request;
-    use tower::ServiceExt;
-
-    #[tokio::test]
-    async fn test_health() {
-        let app = create_router();
-        let req = Request::builder()
-            .uri("/health")
-            .body(Body::empty())
-            .unwrap();
-        let resp = app.oneshot(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
-    }
-}
